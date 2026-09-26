@@ -1,0 +1,200 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  /* System Typography */
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* HSL Colors: Modern Electric Blue + Premium Amber Accent */
+  --color-primary-hue: 220;
+  --color-secondary-hue: 45;
+
+  --bg-primary: 0 0% 100%;
+  --bg-secondary: 210 20% 98%;
+  --text-main: 220 40% 10%;
+  --text-muted: 215 15% 45%;
+  --border-color: 214 32% 91%;
+  
+  /* Glassmorphism defaults */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-blur: 12px;
+}
+
+[data-theme="dark"] {
+  --bg-primary: 224 71% 4%;
+  --bg-secondary: 222 47% 7%;
+  --text-main: 210 40% 98%;
+  --text-muted: 215 20% 65%;
+  --border-color: 217 33% 17%;
+  
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+@theme {
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+
+  --color-primary: hsl(var(--color-primary-hue) 90% 56%);
+  --color-primary-light: hsl(var(--color-primary-hue) 93% 60%);
+  --color-primary-dark: hsl(var(--color-primary-hue) 93% 35%);
+
+  --color-secondary: hsl(var(--color-secondary-hue) 100% 50%);
+  --color-secondary-light: hsl(var(--color-secondary-hue) 100% 65%);
+  --color-secondary-dark: hsl(var(--color-secondary-hue) 100% 40%);
+
+  --color-bg-primary: hsl(var(--bg-primary));
+  --color-bg-secondary: hsl(var(--bg-secondary));
+
+  --color-text-main: hsl(var(--text-main));
+  --color-text-muted: hsl(var(--text-muted));
+
+  --color-border: hsl(var(--border-color));
+
+  --blur-xs: 2px;
+}
+
+/* Base element styles */
+body {
+  @apply bg-bg-primary text-text-main font-body transition-colors duration-300 antialiased overflow-x-hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-heading tracking-tight;
+}
+
+/* Custom utilities */
+@utility glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+@utility gradient-primary {
+  @apply bg-gradient-to-r from-primary to-primary-light;
+}
+
+@utility gradient-secondary {
+  @apply bg-gradient-to-r from-secondary to-secondary-light;
+}
+
+@utility btn-premium {
+  @apply relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+}
+
+/* ==========================================
+   INVOICE MODAL — NO ANIMATIONS
+   ========================================== */
+.printable-invoice,
+.printable-invoice * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ==========================================
+   OFFICIAL 1-PAGE INVOICE PRINT STYLESHEET
+   ========================================== */
+@media print {
+  /* 1. Hide everything on the page */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* 2. Show ONLY the invoice and every element inside it */
+  .printable-invoice,
+  .printable-invoice * {
+    visibility: visible !important;
+    display: revert !important;
+  }
+
+  /* 3. Position invoice to fill the printed page */
+  .printable-invoice {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 32px !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: visible !important;
+  }
+
+  /* 4. Page & body reset */
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 5. Force ALL text elements inside invoice to be readable dark color */
+  .printable-invoice p,
+  .printable-invoice span,
+  .printable-invoice h1,
+  .printable-invoice h2,
+  .printable-invoice h3,
+  .printable-invoice h4,
+  .printable-invoice h5,
+  .printable-invoice h6,
+  .printable-invoice div,
+  .printable-invoice td,
+  .printable-invoice th,
+  .printable-invoice label,
+  .printable-invoice li {
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 6. Restore colored badge classes */
+  .printable-invoice .text-primary { color: #2563eb !important; }
+  .printable-invoice .text-green-500 { color: #16a34a !important; }
+  .printable-invoice .text-amber-500 { color: #d97706 !important; }
+  .printable-invoice .text-red-500 { color: #dc2626 !important; }
+
+  /* 7. Section backgrounds: light grey so sections are distinguishable */
+  .printable-invoice [class*="bg-bg-secondary"],
+  .printable-invoice [class*="bg-bg-primary"],
+  .printable-invoice [class*="bg-primary/"],
+  .printable-invoice .glass-card {
+    background: #f8fafc !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* 8. Borders visible in print */
+  .printable-invoice [class*="border"] {
+    border-color: #cbd5e1 !important;
+  }
+
+  /* 9. Images must print */
+  .printable-invoice img {
+    display: inline-block !important;
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 10. Hide buttons (close X, print button) when printing */
+  .printable-invoice button {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* 11. Page setup */
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+}

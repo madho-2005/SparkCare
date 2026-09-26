@@ -1,0 +1,32 @@
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Node modules
+node_modules/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+*.env
+!.env.example
+
+# File Uploads & Local Spooling
+uploads/*
+!uploads/.gitkeep
+
+# Database backups & dumps
+backups/
+*.dump
+*.sql
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
