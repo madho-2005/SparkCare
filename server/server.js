@@ -87,6 +87,21 @@ app.use('/api/', apiLimiter);
 // ==========================================
 app.use('/api/v1', apiRoutes);
 
+// Root Welcome Gateway
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'SparkCare API Server is live and operational.',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      api: '/api/v1',
+      products: '/api/v1/products',
+      services: '/api/v1/services'
+    }
+  });
+});
+
 // Root Health Gateway (for ALB / Kubernetes / Docker health checks)
 app.get('/health', checkHealth);
 
