@@ -121,6 +121,7 @@ const productSchema = new mongoose.Schema(
 // Compound indexes for optimization
 productSchema.index({ category: 1, price: 1 });
 productSchema.index({ createdAt: -1 });
+productSchema.index({ isFeatured: 1, isActive: 1, status: 1 });
 
 // Full-text search index for catalog searchability
 productSchema.index(

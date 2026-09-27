@@ -152,8 +152,13 @@ export const ProductsPage = () => {
       params.maxPrice = (parseFloat(maxPrice) / 83).toString();
     }
 
+    const featuredParam = searchParams.get('isFeatured') || searchParams.get('featured');
+    if (featuredParam === 'true' || featuredParam === '1') {
+      params.isFeatured = 'true';
+    }
+
     dispatch(fetchProducts(params));
-  }, [dispatch, page, sortBy, selectedCategory, selectedBrand, debouncedSearch, minPrice, maxPrice]);
+  }, [dispatch, page, sortBy, selectedCategory, selectedBrand, debouncedSearch, minPrice, maxPrice, searchParams]);
 
   useEffect(() => {
     loadCatalog();

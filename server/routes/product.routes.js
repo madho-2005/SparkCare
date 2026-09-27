@@ -1,6 +1,7 @@
 import express from 'express';
 import { 
   getProducts, 
+  getFeaturedProducts,
   getProductCategories, 
   getProductById, 
   adminGetProducts,
@@ -21,6 +22,7 @@ router.get('/admin/all', protect, restrictTo('admin'), adminGetProducts);
 
 // Public routes
 router.get('/', getProducts);
+router.get('/featured', getFeaturedProducts);
 router.get('/categories', getProductCategories);
 router.get('/:id', getProductById);
 

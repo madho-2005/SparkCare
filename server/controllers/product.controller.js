@@ -965,9 +965,24 @@ export const getProducts = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // 2b. Featured Filter — used by homepage to fetch only isFeatured=true products
-  if (req.query.isFeatured === 'true') {
+  // 2b. Featured Filter — handles boolean, string, or alias 'featured'
+  const isFeaturedVal = req.query.isFeatured ?? req.query.featured;
+  if (isFeaturedVal === 'true' || isFeaturedVal === true || isFeaturedVal === '1') {
     queryObj.isFeatured = true;
+  } else if (isFeaturedVal === 'false' || isFeaturedVal === false || isFeaturedVal === '0') {
+    queryObj.isFeatured = false;
+  }
+
+  // 2c. Specific Product IDs Filter (safe ObjectId validation to prevent query crashes)
+  const rawIdsParam = req.query.ids || req.query.featuredIds;
+  if (rawIdsParam) {
+    const rawIds = Array.isArray(rawIdsParam)
+      ? rawIdsParam
+      : String(rawIdsParam).split(',').map((id) => id.trim());
+    const validIds = rawIds.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length > 0) {
+      queryObj._id = { $in: validIds };
+    }
   }
 
   // 3. Price Filter (USD values in DB)
@@ -1044,6 +1059,49 @@ export const getProducts = asyncHandler(async (req, res, next) => {
       limit: limitNum,
     },
     'Products retrieved successfully.'
+  );
+});
+
+/**
+ * Dedicated Public Endpoint: Get featured products for homepage & marketing showcases.
+ * Route: GET /api/v1/products/featured
+ */
+export const getFeaturedProducts = asyncHandler(async (req, res, next) => {
+  await autoSeedProducts();
+
+  const limitNum = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 6));
+
+  const queryObj = {
+    isFeatured: true,
+    isActive: { $ne: false },
+    status: { $nin: ['draft', 'inactive'] },
+  };
+
+  // Safe ID filter if requested
+  const rawIdsParam = req.query.ids || req.query.featuredIds;
+  if (rawIdsParam) {
+    const rawIds = Array.isArray(rawIdsParam)
+      ? rawIdsParam
+      : String(rawIdsParam).split(',').map((id) => id.trim());
+    const validIds = rawIds.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length > 0) {
+      queryObj._id = { $in: validIds };
+    }
+  }
+
+  const products = await Product.find(queryObj)
+    .sort({ averageRating: -1, createdAt: -1 })
+    .limit(limitNum);
+
+  ApiResponse.send(
+    res,
+    200,
+    {
+      products,
+      totalProducts: products.length,
+      limit: limitNum,
+    },
+    'Featured products retrieved successfully.'
   );
 });
 

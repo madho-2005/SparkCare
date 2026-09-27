@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ShoppingCart, Star, Award, ArrowRight, Eye,
   ShieldAlert, Loader2, AlertCircle, PackageSearch
 } from 'lucide-react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchFeaturedProducts } from '../../redux/productSlice';
 import { addToCart } from '../../redux/cartSlice';
 import toast from 'react-hot-toast';
 import { formatINR } from '../../utils/currency';
 import { getProductImage } from '../../utils/productImage';
-import { api } from '../../services/api';
 
 // Promo banner images (served from public/images)
 const imgPromoLed = '/images/services/led-lighting.png';
@@ -28,56 +28,29 @@ const itemVariants = {
 
 export const FeaturedProducts = () => {
   const dispatch = useDispatch();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [fetchKey, setFetchKey] = useState(0); // increment to retry
+  const {
+    featuredProducts: products,
+    featuredLoading: loading,
+    featuredError: error,
+  } = useSelector((state) => state.products);
 
-  const fetchFeatured = useCallback(async (signal) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await api.get('/products', {
-        params: { isFeatured: 'true', limit: 6, sort: 'rating' },
-        signal,
-      });
-
-      const rawItems = response.data?.data?.products || [];
-
-      // Validate: only render products that have a real MongoDB _id
-      const validItems = rawItems.filter((p) => p && p._id);
-
-      if (process.env.NODE_ENV !== 'production' && validItems.length !== rawItems.length) {
-        console.warn(
-          `[FeaturedProducts] Excluded ${rawItems.length - validItems.length} product(s) with missing _id from API response.`
-        );
-      }
-
-      // Deduplicate by real database _id
-      const unique = Array.from(
-        new Map(validItems.map((p) => [String(p._id), p])).values()
-      );
-
-      setProducts(unique);
-    } catch (err) {
-      // Ignore AbortController cancellations (React Strict Mode double-invoke)
-      if (err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError' || err?.name === 'AbortError') return;
-
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('[FeaturedProducts] Failed to load featured products:', err);
-      }
-      setError('Unable to load featured products. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const loadFeatured = useCallback(() => {
+    const promise = dispatch(fetchFeaturedProducts({ limit: 6, sort: 'rating' }));
+    return () => {
+      promise.abort();
+    };
+  }, [dispatch]);
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetchFeatured(controller.signal);
-    return () => controller.abort();
-  }, [fetchFeatured, fetchKey]);
+    const cleanup = loadFeatured();
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [loadFeatured]);
+
+  const handleRetry = () => {
+    dispatch(fetchFeaturedProducts({ limit: 6, sort: 'rating' }));
+  };
 
   const handleAddToCart = (product) => {
     dispatch(
@@ -120,9 +93,9 @@ export const FeaturedProducts = () => {
       React.createElement(
         'button',
         {
-          onClick: () => setFetchKey((k) => k + 1),
+          onClick: handleRetry,
           className:
-            'text-xs font-black uppercase tracking-wider text-amber-500 hover:text-amber-600 transition-colors border border-amber-500/30 px-4 py-2 rounded-lg hover:bg-amber-500/10',
+            'text-xs font-black uppercase tracking-wider text-amber-500 hover:text-amber-600 transition-colors border border-amber-500/30 px-4 py-2 rounded-lg hover:bg-amber-500/10 cursor-pointer active:scale-95',
         },
         'Try Again'
       )

@@ -18,6 +18,35 @@ export const fetchProducts = createAsyncThunk(
   }
 );
 
+// Async Thunk: Retrieve featured products for homepage / marketing displays
+export const fetchFeaturedProducts = createAsyncThunk(
+  'products/fetchFeatured',
+  async (params = { limit: 6, sort: 'rating' }, { rejectWithValue, signal }) => {
+    try {
+      const response = await api.get('/products', {
+        params: { isFeatured: 'true', ...params },
+        signal,
+      });
+      const data = response.data;
+      const rawProducts = Array.isArray(data?.data?.products)
+        ? data.data.products
+        : Array.isArray(data?.products)
+        ? data.products
+        : Array.isArray(data?.data)
+        ? data.data
+        : [];
+      return rawProducts;
+    } catch (error) {
+      if (axios.isCancel(error) || error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
+        return rejectWithValue('__CANCELED__');
+      }
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Unable to load featured products. Please try again.'
+      );
+    }
+  }
+);
+
 // Async Thunk: Retrieve category list dynamically
 export const fetchCategories = createAsyncThunk(
   'products/fetchCategories',
@@ -92,6 +121,7 @@ export const addProductReview = createAsyncThunk(
 
 const initialState = {
   products: [],
+  featuredProducts: [],
   totalProducts: 0,
   totalPages: 1,
   currentPage: 1,
@@ -100,9 +130,11 @@ const initialState = {
   selectedProduct: null,
   reviews: [],
   loading: false,
+  featuredLoading: false,
   detailsLoading: false,
   relatedLoading: false,
   error: null,
+  featuredError: null,
   detailsError: null,
   submitReviewLoading: false,
   currentRequestId: null,
@@ -120,11 +152,35 @@ const productSlice = createSlice({
     },
     clearProductError: (state) => {
       state.error = null;
+      state.featuredError = null;
       state.detailsError = null;
     }
   },
   extraReducers: (builder) => {
     builder
+      // Fetch Featured Products (Homepage)
+      .addCase(fetchFeaturedProducts.pending, (state) => {
+        state.featuredLoading = true;
+        state.featuredError = null;
+      })
+      .addCase(fetchFeaturedProducts.fulfilled, (state, action) => {
+        state.featuredLoading = false;
+        state.featuredError = null;
+        const rawItems = action.payload || [];
+        state.featuredProducts = Array.from(
+          new Map(
+            rawItems
+              .filter((p) => p && p._id)
+              .map((p) => [String(p._id), p])
+          ).values()
+        );
+      })
+      .addCase(fetchFeaturedProducts.rejected, (state, action) => {
+        if (action.payload === '__CANCELED__') return;
+        state.featuredLoading = false;
+        state.featuredError = action.payload || 'Unable to load featured products. Please try again.';
+      })
+
       // Fetch Products
       .addCase(fetchProducts.pending, (state, action) => {
         state.loading = true;

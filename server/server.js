@@ -1,3 +1,8 @@
+import dns from 'dns';
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+} catch (e) {}
+
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';

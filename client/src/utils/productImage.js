@@ -12,13 +12,16 @@ export const getProductImage = (product) => {
     }
   }
 
-  // 1. Direct valid image path check from product object
+  // 1. Direct valid image path check from product object (supports Cloudinary, external URLs, and local paths)
   const rawImg = typeof product.images?.[0] === 'object'
-    ? product.images[0]?.secure_url
+    ? (product.images[0]?.secure_url || product.images[0]?.url)
     : (product.images?.[0] || product.image);
 
-  if (rawImg && typeof rawImg === 'string' && (rawImg.startsWith('/images/products/') || rawImg.startsWith('/images/services/'))) {
-    return rawImg;
+  if (rawImg && typeof rawImg === 'string') {
+    const trimmed = rawImg.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/images/')) {
+      return trimmed;
+    }
   }
 
   // 2. Keyword-based product & brand matching rules
