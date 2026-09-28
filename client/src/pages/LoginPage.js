@@ -45,7 +45,11 @@ export const LoginPage = () => {
     try {
       const response = await dispatch(loginUser({ email, password })).unwrap();
       toast.success(`Welcome back, ${response.user.name}!`);
-      navigate(from, { replace: true });
+      if (response.user?.role === 'admin' && from === '/') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch (err) {
       toast.error(err || 'Failed to authenticate');
     }
