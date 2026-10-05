@@ -29,11 +29,12 @@ export const DashboardLayout = () => {
   // Configure 11 navigation lists for comprehensive system administrative controls
   const adminLinks = [
   { title: 'Overview', path: '/admin', icon: /*#__PURE__*/React.createElement(LayoutDashboard, { size: 18 }) },
+  { title: 'Orders', path: '/admin/orders', icon: /*#__PURE__*/React.createElement(Truck, { size: 18 }) },
   { title: 'Bookings', path: '/admin/bookings', icon: /*#__PURE__*/React.createElement(Calendar, { size: 18 }) },
   { title: 'Products', path: '/admin/products', icon: /*#__PURE__*/React.createElement(ShoppingBag, { size: 18 }) },
   { title: 'Services', path: '/admin/services', icon: /*#__PURE__*/React.createElement(Wrench, { size: 18 }) },
   { title: 'Users List', path: '/admin/users', icon: /*#__PURE__*/React.createElement(Users, { size: 18 }) },
-  { title: 'QR Verification', path: '/admin/payments', icon: /*#__PURE__*/React.createElement(CreditCard, { size: 18 }) },
+  { title: 'Payment Verification', path: '/admin/payments', icon: /*#__PURE__*/React.createElement(CreditCard, { size: 18 }) },
   { title: 'Reviews', path: '/admin/reviews', icon: /*#__PURE__*/React.createElement(MessageSquare, { size: 18 }) },
   { title: 'Financial Reports', path: '/admin/reports', icon: /*#__PURE__*/React.createElement(FileText, { size: 18 }) },
   { title: 'Promo Coupons', path: '/admin/coupons', icon: /*#__PURE__*/React.createElement(Ticket, { size: 18 }) },
