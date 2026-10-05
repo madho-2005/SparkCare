@@ -454,6 +454,11 @@ export const updateUserRole = asyncHandler(async (req, res, next) => {
     return next(new AppError('User not found', 404));
   }
 
+  // Prevent admin from inadvertently revoking their own administrative role
+  if (req.user && req.user._id.toString() === user._id.toString() && role !== 'admin') {
+    return next(new AppError('Administrators cannot revoke their own administrative privileges.', 400));
+  }
+
   user.role = role;
   await user.save();
 

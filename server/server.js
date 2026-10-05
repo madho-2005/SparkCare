@@ -45,7 +45,11 @@ app.set('trust proxy', 1);
 // ==========================================
 // 1. Security Header Shielding (Helmet)
 // ==========================================
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 // ==========================================
 // 2. Cross-Origin Resource Sharing (CORS)
