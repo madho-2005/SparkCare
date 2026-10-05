@@ -5,7 +5,7 @@ import { logoutUser } from '../redux/authSlice';
 import {
   LayoutDashboard, Users, ShoppingBag, Calendar, Wrench,
   Menu, X, LogOut, ChevronRight, Home,
-  CreditCard, MessageSquare, FileText, Ticket, Settings, Zap, Truck } from
+  CreditCard, MessageSquare, FileText, Ticket, Settings, Truck } from
 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -50,7 +50,7 @@ export const DashboardLayout = () => {
     React.createElement("div", { className: "h-16 flex items-center justify-between px-6 border-b border-border" }, /*#__PURE__*/
     React.createElement(Link, { to: "/admin", className: "flex items-center gap-2.5 group" }, /*#__PURE__*/
     React.createElement("div", { className: "w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-primary-light text-white flex items-center justify-center shadow-md shadow-primary/20 group-hover:scale-105 transition-transform" }, /*#__PURE__*/
-    React.createElement(Zap, { size: 20, className: "fill-white" })
+    React.createElement("span", { className: "font-black text-sm tracking-tight font-heading leading-none text-white select-none" }, "SC")
     ), /*#__PURE__*/
     React.createElement("div", { className: "flex flex-col" }, /*#__PURE__*/
     React.createElement("span", { className: "text-base font-extrabold font-heading text-text-main tracking-tight leading-none" }, "Spark", /*#__PURE__*/
@@ -124,7 +124,7 @@ export const DashboardLayout = () => {
     ), /*#__PURE__*/
     React.createElement("div", { className: "flex items-center gap-2" }, /*#__PURE__*/
     React.createElement("div", { className: "w-7 h-7 rounded-lg bg-gradient-to-tr from-primary to-primary-light text-white flex items-center justify-center shadow-sm" }, /*#__PURE__*/
-    React.createElement(Zap, { size: 16, className: "fill-white" })
+    React.createElement("span", { className: "font-black text-xs tracking-tight font-heading leading-none text-white select-none" }, "SC")
     ), /*#__PURE__*/
     React.createElement("span", { className: "text-base font-extrabold font-heading text-text-main" }, "Spark", /*#__PURE__*/
     React.createElement("span", { className: "text-primary" }, "Care"), " ", /*#__PURE__*/
