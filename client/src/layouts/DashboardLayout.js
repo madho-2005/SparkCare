@@ -49,8 +49,12 @@ export const DashboardLayout = () => {
     React.createElement("aside", { className: "hidden md:flex flex-col w-64 glass-card border-r border-border bg-bg-primary h-screen sticky top-0" }, /*#__PURE__*/
     React.createElement("div", { className: "h-16 flex items-center justify-between px-6 border-b border-border" }, /*#__PURE__*/
     React.createElement(Link, { to: "/admin", className: "flex items-center gap-2.5 group" }, /*#__PURE__*/
-    React.createElement("div", { className: "w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-primary-light text-white flex items-center justify-center shadow-md shadow-primary/20 group-hover:scale-105 transition-transform" }, /*#__PURE__*/
-    React.createElement("span", { className: "font-black text-sm tracking-tight font-heading leading-none text-white select-none" }, "SC")
+    React.createElement("div", { className: "w-9 h-9 rounded-xl overflow-hidden border border-border shadow-md shadow-primary/20 group-hover:scale-105 transition-transform bg-bg-secondary flex items-center justify-center shrink-0" }, /*#__PURE__*/
+    React.createElement("img", {
+      src: "/favicon.jpg",
+      alt: "SparkCare Logo",
+      className: "w-full h-full object-cover select-none"
+    })
     ), /*#__PURE__*/
     React.createElement("div", { className: "flex flex-col" }, /*#__PURE__*/
     React.createElement("span", { className: "text-base font-extrabold font-heading text-text-main tracking-tight leading-none" }, "Spark", /*#__PURE__*/
@@ -123,8 +127,12 @@ export const DashboardLayout = () => {
     React.createElement(Menu, { size: 24 })
     ), /*#__PURE__*/
     React.createElement("div", { className: "flex items-center gap-2" }, /*#__PURE__*/
-    React.createElement("div", { className: "w-7 h-7 rounded-lg bg-gradient-to-tr from-primary to-primary-light text-white flex items-center justify-center shadow-sm" }, /*#__PURE__*/
-    React.createElement("span", { className: "font-black text-xs tracking-tight font-heading leading-none text-white select-none" }, "SC")
+    React.createElement("div", { className: "w-7 h-7 rounded-lg overflow-hidden border border-border shadow-sm bg-bg-secondary flex items-center justify-center shrink-0" }, /*#__PURE__*/
+    React.createElement("img", {
+      src: "/favicon.jpg",
+      alt: "SparkCare Logo",
+      className: "w-full h-full object-cover select-none"
+    })
     ), /*#__PURE__*/
     React.createElement("span", { className: "text-base font-extrabold font-heading text-text-main" }, "Spark", /*#__PURE__*/
     React.createElement("span", { className: "text-primary" }, "Care"), " ", /*#__PURE__*/
@@ -147,7 +155,12 @@ export const DashboardLayout = () => {
 
     React.createElement("div", { className: "relative flex flex-col w-64 bg-bg-primary border-r border-border h-full p-4 z-10 shadow-2xl" }, /*#__PURE__*/
     React.createElement("div", { className: "flex items-center justify-between mb-6" }, /*#__PURE__*/
-    React.createElement("span", { className: "text-lg font-extrabold text-primary font-heading" }, "Navigation"), /*#__PURE__*/
+    React.createElement("div", { className: "flex items-center gap-2.5" }, /*#__PURE__*/
+    React.createElement("div", { className: "w-7 h-7 rounded-lg overflow-hidden border border-border shadow-sm bg-bg-secondary flex items-center justify-center shrink-0" }, /*#__PURE__*/
+    React.createElement("img", { src: "/favicon.jpg", alt: "SparkCare Logo", className: "w-full h-full object-cover select-none" })
+    ), /*#__PURE__*/
+    React.createElement("span", { className: "text-base font-extrabold text-primary font-heading" }, "SparkCare")
+    ), /*#__PURE__*/
     React.createElement("button", {
       onClick: () => setIsSidebarOpen(false),
       className: "p-2 rounded-md hover:bg-bg-secondary text-text-muted" }, /*#__PURE__*/
