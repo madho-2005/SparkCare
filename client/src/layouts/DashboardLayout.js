@@ -5,7 +5,7 @@ import { logoutUser } from '../redux/authSlice';
 import {
   LayoutDashboard, Users, ShoppingBag, Calendar, Wrench,
   Menu, X, LogOut, ChevronRight, Home,
-  CreditCard, MessageSquare, FileText, Ticket, Settings, Zap } from
+  CreditCard, MessageSquare, FileText, Ticket, Settings, Zap, Truck } from
 'lucide-react';
 import toast from 'react-hot-toast';
 
