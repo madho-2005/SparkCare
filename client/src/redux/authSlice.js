@@ -89,11 +89,19 @@ export const checkAuthStatus = createAsyncThunk(
         return rejectWithValue('Session expired after 2 days of inactivity.');
       }
       const response = await api.post('/auth/refresh');
+      if (response.data?.data?.accessToken) {
+        try {
+          localStorage.setItem('sparkcare_token', response.data.data.accessToken);
+        } catch {}
+      }
       sessionStorage.removeItem('sparkcare_logged_out');
       updateSessionTimestamp();
       return response.data.data;
     } catch {
       clearSessionTimestamp();
+      try {
+        localStorage.removeItem('sparkcare_token');
+      } catch {}
       return rejectWithValue(null);
     }
   }
@@ -125,6 +133,9 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.loading = false;
       clearSessionTimestamp();
+      try {
+        localStorage.removeItem('sparkcare_token');
+      } catch {}
       sessionStorage.setItem('sparkcare_logged_out', '1');
     }
   },
@@ -139,6 +150,11 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
+        if (action.payload?.accessToken) {
+          try {
+            localStorage.setItem('sparkcare_token', action.payload.accessToken);
+          } catch {}
+        }
         sessionStorage.removeItem('sparkcare_logged_out');
         updateSessionTimestamp();
       })
@@ -156,6 +172,11 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
+        if (action.payload?.accessToken) {
+          try {
+            localStorage.setItem('sparkcare_token', action.payload.accessToken);
+          } catch {}
+        }
         sessionStorage.removeItem('sparkcare_logged_out');
         updateSessionTimestamp();
       })
@@ -170,6 +191,9 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.loading = false;
         clearSessionTimestamp();
+        try {
+          localStorage.removeItem('sparkcare_token');
+        } catch {}
         sessionStorage.setItem('sparkcare_logged_out', '1');
       })
       .addCase(logoutUser.rejected, (state) => {
@@ -177,6 +201,9 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.loading = false;
         clearSessionTimestamp();
+        try {
+          localStorage.removeItem('sparkcare_token');
+        } catch {}
         sessionStorage.setItem('sparkcare_logged_out', '1');
       })
       
@@ -188,6 +215,11 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
+        if (action.payload?.accessToken) {
+          try {
+            localStorage.setItem('sparkcare_token', action.payload.accessToken);
+          } catch {}
+        }
         state.isInitialized = true;
         sessionStorage.removeItem('sparkcare_logged_out');
       })
@@ -195,6 +227,9 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
+        try {
+          localStorage.removeItem('sparkcare_token');
+        } catch {}
         state.isInitialized = true;
       });
   },

@@ -14,6 +14,22 @@ export const api = axios.create({
   },
 });
 
+// Request Interceptor: Attach Authorization Bearer token from localStorage if present
+api.interceptors.request.use(
+  (config) => {
+    try {
+      const token = localStorage.getItem('sparkcare_token');
+      if (token && !config.headers.Authorization) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (err) {
+      console.warn('Could not retrieve auth token from storage:', err);
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Flag to coordinate multiple parallel refreshes safely
 let isRefreshing = false;
 let failedQueue = [];
@@ -67,7 +83,12 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then(() => api(originalRequest))
+          .then((token) => {
+            if (token) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return api(originalRequest);
+          })
           .catch((err) => Promise.reject(err));
       }
 
@@ -76,10 +97,17 @@ api.interceptors.response.use(
 
       try {
         // Trigger token refresh rotation endpoint
-        await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+        const refreshRes = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+        const newAccessToken = refreshRes.data?.data?.accessToken;
+        if (newAccessToken) {
+          try {
+            localStorage.setItem('sparkcare_token', newAccessToken);
+          } catch {}
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        }
         
         isRefreshing = false;
-        processQueue(null); // Clear pending queue
+        processQueue(null, newAccessToken); // Clear pending queue
         
         return api(originalRequest); // Retry original failed request
       } catch (refreshError) {
@@ -87,6 +115,9 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         
         // Refresh token failed: User session completely dead. Mark logged out.
+        try {
+          localStorage.removeItem('sparkcare_token');
+        } catch {}
         sessionStorage.setItem('sparkcare_logged_out', '1');
         return Promise.reject(refreshError);
       }

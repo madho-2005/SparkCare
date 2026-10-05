@@ -31,18 +31,26 @@ export const verifyTokenHash = (storedHash, incomingToken) => {
 };
 
 // Cookie structure config parameters
-const isProduction = process.env.NODE_ENV === 'production';
-const isCrossSite = process.env.COOKIE_CROSS_SITE === 'true' || isProduction;
+export const getCookieOptions = (req = null) => {
+  const isHttps = Boolean(
+    process.env.NODE_ENV === 'production' ||
+    process.env.COOKIE_CROSS_SITE === 'true' ||
+    (req && (req.secure || req.headers?.['x-forwarded-proto'] === 'https')) ||
+    (req && req.headers?.origin && req.headers.origin.includes('vercel.app'))
+  );
 
-const cookieOptions = {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: isCrossSite ? 'none' : 'lax',
-  path: '/',
+  return {
+    httpOnly: true,
+    secure: isHttps,
+    sameSite: isHttps ? 'none' : 'lax',
+    path: '/',
+  };
 };
 
+export const cookieOptions = getCookieOptions();
+
 // Configures authentication access & refresh cookie headers
-const sendTokenResponse = async (user, statusCode, res, message) => {
+const sendTokenResponse = async (user, statusCode, res, message, req = null) => {
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
 
@@ -50,13 +58,15 @@ const sendTokenResponse = async (user, statusCode, res, message) => {
   user.refreshTokenHash = hashToken(refreshToken);
   await user.save({ validateBeforeSave: false });
   
+  const options = getCookieOptions(req);
+
   res.cookie('accessToken', accessToken, {
-    ...cookieOptions,
+    ...options,
     expires: new Date(Date.now() + 15 * 60 * 1000), // 15m
   });
 
   res.cookie('refreshToken', refreshToken, {
-    ...cookieOptions,
+    ...options,
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7d
   });
 
@@ -95,7 +105,7 @@ export const register = asyncHandler(async (req, res, next) => {
     phoneNumber,
   });
 
-  await sendTokenResponse(user, 201, res, 'Account registered successfully.');
+  await sendTokenResponse(user, 201, res, 'Account registered successfully.', req);
 });
 
 /**
@@ -113,7 +123,7 @@ export const login = asyncHandler(async (req, res, next) => {
     return next(new AppError('Invalid email address or password.', 401));
   }
 
-  await sendTokenResponse(user, 200, res, 'Signed in successfully.');
+  await sendTokenResponse(user, 200, res, 'Signed in successfully.', req);
 });
 
 
@@ -169,8 +179,9 @@ export const logout = asyncHandler(async (req, res, next) => {
   }
 
   // Flush cookie stores unconditionally
-  res.clearCookie('accessToken', cookieOptions);
-  res.clearCookie('refreshToken', cookieOptions);
+  const dynamicCookieOpts = getCookieOptions(req);
+  res.clearCookie('accessToken', dynamicCookieOpts);
+  res.clearCookie('refreshToken', dynamicCookieOpts);
 
   ApiResponse.send(res, 200, null, 'Logged out successfully.');
 });
@@ -179,11 +190,12 @@ export const logout = asyncHandler(async (req, res, next) => {
  * Rotates expired Access & Refresh Tokens.
  */
 export const refresh = asyncHandler(async (req, res, next) => {
+  const dynamicCookieOpts = getCookieOptions(req);
   const refreshToken = req.cookies?.refreshToken;
 
   if (!refreshToken) {
-    res.clearCookie('accessToken', cookieOptions);
-    res.clearCookie('refreshToken', cookieOptions);
+    res.clearCookie('accessToken', dynamicCookieOpts);
+    res.clearCookie('refreshToken', dynamicCookieOpts);
     return next(new AppError('Authentication session missing. Please log in again.', 401));
   }
 
@@ -198,16 +210,16 @@ export const refresh = asyncHandler(async (req, res, next) => {
         user.refreshTokenHash = undefined;
         await user.save({ validateBeforeSave: false });
       }
-      res.clearCookie('accessToken', cookieOptions);
-      res.clearCookie('refreshToken', cookieOptions);
+      res.clearCookie('accessToken', dynamicCookieOpts);
+      res.clearCookie('refreshToken', dynamicCookieOpts);
       return next(new AppError('Security violation detected. Please sign in again.', 401));
     }
 
     // Refresh match verified: execute new token pair rotation
-    await sendTokenResponse(user, 200, res, 'Authentication session rotated successfully.');
+    await sendTokenResponse(user, 200, res, 'Authentication session rotated successfully.', req);
   } catch (error) {
-    res.clearCookie('accessToken', cookieOptions);
-    res.clearCookie('refreshToken', cookieOptions);
+    res.clearCookie('accessToken', dynamicCookieOpts);
+    res.clearCookie('refreshToken', dynamicCookieOpts);
     return next(new AppError('Invalid or expired refresh token. Please sign in again.', 401));
   }
 });
