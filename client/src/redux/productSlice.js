@@ -8,12 +8,16 @@ export const fetchProducts = createAsyncThunk(
   async (params = {}, { rejectWithValue, signal }) => {
     try {
       const response = await api.get('/products', { params, signal });
-      return response.data.data; // { products, totalProducts, totalPages, currentPage, limit }
+      const data = response.data;
+      if (typeof data === 'string' && data.trim().startsWith('<')) {
+        return rejectWithValue('API returned HTML page instead of JSON. Ensure VITE_API_BASE_URL is set in Vercel.');
+      }
+      return data?.data !== undefined ? data.data : data;
     } catch (error) {
       if (axios.isCancel(error) || error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
         return rejectWithValue('__CANCELED__');
       }
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch products');
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to fetch products');
     }
   }
 );
@@ -190,7 +194,11 @@ const productSlice = createSlice({
       .addCase(fetchProducts.fulfilled, (state, action) => {
         if (state.currentRequestId === action.meta.requestId) {
           state.loading = false;
-          const rawItems = action.payload?.products || [];
+          const rawItems = Array.isArray(action.payload?.products)
+            ? action.payload.products
+            : Array.isArray(action.payload)
+            ? action.payload
+            : [];
           state.products = Array.from(
             new Map(
               rawItems

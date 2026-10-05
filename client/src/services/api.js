@@ -31,7 +31,21 @@ const processQueue = (error, token = null) => {
 
 // Response Interceptor: Catches session expirations and dynamically requests silent token rotation
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Detect when an API endpoint was routed to the frontend SPA HTML (e.g. Vercel SPA rewrite fallback)
+    if (
+      typeof response.data === 'string' &&
+      (response.data.trim().startsWith('<!doctype html>') ||
+       response.data.trim().startsWith('<!DOCTYPE html>') ||
+       response.data.trim().startsWith('<html'))
+    ) {
+      const targetUrl = response.config?.url || 'API';
+      const errorMsg = `API request to "${targetUrl}" returned an HTML document instead of JSON. ` +
+        `This happens when VITE_API_BASE_URL is not set to your live backend server in Vercel Environment Variables.`;
+      return Promise.reject(new Error(errorMsg));
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 

@@ -50,10 +50,46 @@ app.use(helmet());
 // ==========================================
 // 2. Cross-Origin Resource Sharing (CORS)
 // ==========================================
+const getAllowedOrigins = () => {
+  const envOrigins = process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+    : [];
+  
+  const defaultLocalOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173',
+  ];
+
+  return Array.from(new Set([...defaultLocalOrigins, ...envOrigins]));
+};
+
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',') 
-    : 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow non-browser requests (e.g. mobile apps, curl, server-to-server, health checks)
+    if (!origin) return callback(null, true);
+
+    const allowed = getAllowedOrigins();
+
+    // 1. Direct match in configured allowed origins
+    if (allowed.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // 2. Securely match Vercel production and preview deployment domains
+    if (/^https:\/\/[a-zA-Z0-9-_.]+\.vercel\.app$/.test(origin)) {
+      return callback(null, true);
+    }
+
+    // 3. In non-production, allow any localhost / 127.0.0.1 port
+    if (process.env.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+
+    logger.warn(`[CORS Blocked] Origin "${origin}" is not authorized by CORS policy.`);
+    return callback(new AppError(`Origin "${origin}" not allowed by CORS policy.`, 403));
+  },
   credentials: true, // Support cookie transmissions
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

@@ -31,10 +31,13 @@ export const verifyTokenHash = (storedHash, incomingToken) => {
 };
 
 // Cookie structure config parameters
+const isProduction = process.env.NODE_ENV === 'production';
+const isCrossSite = process.env.COOKIE_CROSS_SITE === 'true' || isProduction;
+
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  secure: isProduction,
+  sameSite: isCrossSite ? 'none' : 'lax',
   path: '/',
 };
 
