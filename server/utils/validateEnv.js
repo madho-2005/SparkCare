@@ -52,7 +52,7 @@ export const validateEnv = () => {
 
   // SMTP Email configuration check
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || (!process.env.SMTP_PASSWORD && !process.env.SMTP_PASS)) {
-    warnings.push('SMTP configuration incomplete; transactional emails will spool to local audit logs.');
+    warnings.push('SMTP configuration incomplete; transactional emails will be logged in memory without dispatch.');
   }
 
   // Log summary

@@ -4,6 +4,7 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 import { store } from './redux/store';
 import { checkAuthStatus } from './redux/authSlice';
 import { AppRoutes } from './routes/AppRoutes';
+import { ScrollToTop } from './components/common/ScrollToTop';
 import { Spinner } from './components/ui/Spinner';
 import { Toaster } from 'react-hot-toast';
 
@@ -32,6 +33,7 @@ const AppWrapper = () => {
 
   return (/*#__PURE__*/
     React.createElement(React.Fragment, null, /*#__PURE__*/
+    React.createElement(ScrollToTop, null), /*#__PURE__*/
     React.createElement(AppRoutes, null), /*#__PURE__*/
 
 

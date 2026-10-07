@@ -13,11 +13,14 @@ async function testCouponFlow() {
 
   // 1. Login as Admin
   console.log('1. Logging in as Admin...');
+  if (!process.env.ADMIN_EMAIL) {
+    throw new Error('ADMIN_EMAIL must be set in .env to run testCouponFlow');
+  }
   const loginRes = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: process.env.ADMIN_EMAIL || 'admin@sparkcare.com',
+      email: process.env.ADMIN_EMAIL,
       password: process.env.ADMIN_PASSWORD || 'Admin@1234'
     })
   });

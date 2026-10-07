@@ -10,6 +10,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../utils/appError.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { emailService } from '../services/email.service.js';
+import { notificationService } from '../services/notificationService.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -501,6 +502,8 @@ export const updateOrderStatus = asyncHandler(async (req, res, next) => {
     return next(new AppError('Order not found', 404));
   }
 
+  const previousStatus = order.orderStatus;
+
   // If order is transitioned to cancelled and stock was not previously restored, restore stock once
   if (orderStatus === 'cancelled' && !order.stockRestored) {
     order.stockRestored = true;
@@ -518,6 +521,13 @@ export const updateOrderStatus = asyncHandler(async (req, res, next) => {
     order.deliveredAt = new Date();
   }
   await order.save();
+
+  // Send status update email only when status has legitimately changed
+  if (previousStatus !== orderStatus) {
+    notificationService.sendOrderStatusUpdate(order._id, orderStatus, previousStatus).catch((err) =>
+      logger.error(`[Email] Failed to dispatch order status update email for #${order._id}: ${err.message}`)
+    );
+  }
 
   res.status(200).json(new ApiResponse(200, order, `Order status successfully marked as: ${orderStatus}`));
 });
@@ -858,7 +868,7 @@ export const verifyPaymentProof = asyncHandler(async (req, res, next) => {
     }
 
     return res.status(200).json(
-      new ApiResponse(200, payment, 'QR Payment proof receipt REJECTED. Alert email spooled.')
+      new ApiResponse(200, payment, 'QR Payment proof receipt REJECTED. Notification dispatched.')
     );
   }
 });

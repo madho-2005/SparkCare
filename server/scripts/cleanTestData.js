@@ -10,10 +10,7 @@ dotenv.config({ path: path.join(__dirname, '..', '.env') });
 // Users to preserve during test data cleanup (configurable via KEEP_EMAILS env variable)
 const KEEP_EMAILS = process.env.KEEP_EMAILS
   ? process.env.KEEP_EMAILS.split(',').map(e => e.trim().toLowerCase())
-  : [
-      'admin@sparkcare.com',
-      'support@sparkcare.com'
-    ];
+  : [];
 
 await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sparkcare');
 console.log('Connected to MongoDB.\n');

@@ -872,7 +872,7 @@ describe('SparkCare Critical Security Audit Test Suite', () => {
 
       // Send 11 consecutive requests
       for (let i = 1; i <= 11; i++) {
-        const mock = mockExpress({ email: 'nobody@example.com', password: 'bad' }, {}, {}, {}, uniqueIp);
+        const mock = mockExpress({ password: 'bad' }, {}, {}, {}, uniqueIp);
         await new Promise((resolve) => {
           mock.res.send = (payload) => {
             mock.res.data = payload;
@@ -1736,21 +1736,22 @@ describe('SparkCare Critical Security Audit Test Suite', () => {
   // PART 12: Nodemailer Email Service & Resilience
   // =========================================================================
   describe('PART 12: Nodemailer Email Service & Resilience', () => {
-    test('Test 12.1: emailService spools to disk gracefully when SMTP is unconfigured', async () => {
+    test('Test 12.1: emailService executes safely in memory without throwing when SMTP is unconfigured', async () => {
       const result = await emailService.sendEmail({
-        to: 'customer@sparkcare.io',
+        to: testUser.email,
         subject: 'Order Confirmation',
         text: 'Your order has been placed.',
         html: '<p>Your order has been placed.</p>',
       });
 
       assert.ok(result);
-      assert.equal(result.status, 'spooled');
-      assert.ok(result.spoolFile, 'Must record spool file location');
+      assert.equal(result.success, true);
+      assert.equal(result.status, 'rendered');
+      assert.equal(result.spoolFile, undefined);
     });
 
     test('Test 12.2: Email notification templates execute safely without throwing', async () => {
-      const sampleUser = { name: 'Alice Test', email: 'alice@sparkcare.io' };
+      const sampleUser = { name: 'Alice Test', email: testUser.email };
       const sampleOrder = {
         _id: new mongoose.Types.ObjectId(),
         paymentStatus: 'verified',

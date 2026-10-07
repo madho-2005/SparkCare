@@ -15,8 +15,13 @@ const __dirname = path.dirname(__filename);
 // Load .env from server directory
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
-const EMAIL = process.argv[2] || process.env.ADMIN_EMAIL || 'admin@sparkcare.com';
+const EMAIL = process.argv[2] || process.env.ADMIN_EMAIL;
 const NEW_PASSWORD = process.argv[3] || process.env.ADMIN_INITIAL_PASSWORD || 'Admin@1234';
+
+if (!EMAIL) {
+  console.error('❌ ERROR: Admin email must be provided via argument or ADMIN_EMAIL in .env');
+  process.exit(1);
+}
 
 async function resetAdminPassword() {
   try {

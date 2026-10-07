@@ -298,7 +298,7 @@ export const MainLayout = () => {
     React.createElement("input", {
       type: "email",
       required: true,
-      placeholder: "name@email.com",
+      placeholder: "Enter your email",
       value: newsletterEmail,
       onChange: (e) => setNewsletterEmail(e.target.value),
       className: "bg-bg-primary text-text-main border border-border rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary flex-grow min-w-0" }

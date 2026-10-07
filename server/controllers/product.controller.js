@@ -4,6 +4,7 @@ import { ApiResponse } from '../utils/apiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { logger } from '../utils/logger.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinary.service.js';
+import { notificationService } from '../services/notificationService.js';
 import mongoose from 'mongoose';
 
 // High-fidelity seed products for SparkCare catalog
@@ -1397,11 +1398,15 @@ export const updateProduct = asyncHandler(async (req, res, next) => {
     }
   }
 
+  let previousStock = undefined;
+  let parsedStock = undefined;
   if (stockCount !== undefined) {
     const sc = parseInt(stockCount);
     if (isNaN(sc) || sc < 0) {
       return next(new AppError('Stock count must be a non-negative whole integer.', 400));
     }
+    previousStock = product.stockCount;
+    parsedStock = sc;
     product.stockCount = sc;
   }
 
@@ -1445,6 +1450,21 @@ export const updateProduct = asyncHandler(async (req, res, next) => {
   }
 
   await product.save();
+
+  // Inventory alert side-effects if stock changed
+  if (parsedStock !== undefined && previousStock !== undefined) {
+    if (parsedStock === 0 && previousStock > 0) {
+      notificationService.sendOutOfStockAlert(product).catch((err) =>
+        logger.error(`[Alert] Failed to dispatch out-of-stock alert for ${product.name}: ${err.message}`)
+      );
+    } else if (parsedStock <= 5 && previousStock > 5) {
+      notificationService.sendLowStockAlert(product, previousStock, parsedStock).catch((err) =>
+        logger.error(`[Alert] Failed to dispatch low-stock alert for ${product.name}: ${err.message}`)
+      );
+    } else if (parsedStock > 5 && previousStock <= 5) {
+      notificationService.resetAlertHistory(product._id);
+    }
+  }
 
   logger.info(`[Admin Product Updated] "${product.name}" (ID: ${product._id}) updated successfully.`);
 

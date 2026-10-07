@@ -25,10 +25,10 @@ import { errorHandler } from './middleware/error.middleware.js';
 import apiRoutes from './routes/index.js';
 import { checkHealth } from './controllers/health.controller.js';
 
-// Utilities
 import { logger } from './utils/logger.js';
 import { AppError } from './utils/appError.js';
 import { validateEnv } from './utils/validateEnv.js';
+import { emailService } from './services/emailService.js';
 
 // Load and validate environment configuration
 dotenv.config();
@@ -166,6 +166,10 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
   logger.info(`SparkCare Backend Active on Port: ${PORT} (Environment: ${process.env.NODE_ENV || 'development'})`);
+  // Verify SMTP transport connection in background upon server start
+  emailService.verifyConnection().catch((err) => {
+    logger.warn(`[Email Service] Startup SMTP verification check: ${err.message}`);
+  });
 });
 
 // Graceful termination handler

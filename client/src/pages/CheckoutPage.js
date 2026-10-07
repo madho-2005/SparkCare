@@ -25,9 +25,8 @@ export const CheckoutPage = () => {
   const { currentOrder, loading, success } = useSelector((state) => state.order);
 
   // States
-  const [step, setStep] = useState(1); // Steps: 1 = Address, 2 = Payment/Review, 3 = Success
-  const [countdown, setCountdown] = useState(3); // Auto-redirect countdown in seconds
-  const [redirectCancelled, setRedirectCancelled] = useState(false);
+  const [step, setStep] = useState(1); // Steps: 1 = Address, 2 = Payment/Review
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [addressForm, setAddressForm] = useState({
     street: shippingAddress.street || '',
     city: shippingAddress.city || '',
@@ -90,20 +89,6 @@ export const CheckoutPage = () => {
     dispatch(resetOrderState());
   }, [dispatch]);
 
-  // Auto-redirect to order summary in account upon successful order completion
-  useEffect(() => {
-    if (step === 3 && !redirectCancelled) {
-      if (countdown <= 0) {
-        navigate('/account?tab=orders');
-        return;
-      }
-      const timer = setTimeout(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [step, countdown, redirectCancelled, navigate]);
-
   // Address submission
   const handleAddressSubmit = (e) => {
     e.preventDefault();
@@ -133,6 +118,9 @@ export const CheckoutPage = () => {
 
   // Submits order
   const handlePlaceOrder = async () => {
+    // Prevent duplicate orders from double-clicking or rapid clicking
+    if (loading || isSubmitting) return;
+
     const orderData = {
       items: items.map((item) => ({ product: item.product, quantity: item.quantity })),
       shippingAddress: addressForm,
@@ -146,10 +134,12 @@ export const CheckoutPage = () => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
+      // 1. Submit order to backend
       const res = await dispatch(placeOrder(orderData)).unwrap();
 
-      // If UPI receipt proof needs uploading
+      // 2. If UPI receipt proof needs uploading
       if (paymentMethod === 'qr' && res?.order?._id) {
         const formData = new FormData();
         formData.append('screenshot', qrScreenshot);
@@ -159,9 +149,14 @@ export const CheckoutPage = () => {
         await dispatch(uploadQrProof({ orderId: res.order._id, formData })).unwrap();
       }
 
-      setStep(3);
+      // 3. Backend successfully confirmed order creation: redirect directly to customer's Orders page
+      toast.success(paymentMethod === 'qr' ? 'Order placed and payment proof submitted!' : 'Order placed successfully!');
+      navigate('/account?tab=orders');
     } catch (err) {
-      console.error(err);
+      console.error('[Checkout] Order creation failed:', err);
+      // Stay on checkout page on failure - do NOT redirect
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -494,10 +489,10 @@ export const CheckoutPage = () => {
 
     React.createElement("button", {
       onClick: handlePlaceOrder,
-      disabled: loading,
+      disabled: loading || isSubmitting,
       className: "w-full bg-primary hover:bg-primary-light text-white font-extrabold py-3.5 rounded-xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none" },
 
-    loading ? 'Processing Order...' : /*#__PURE__*/React.createElement(React.Fragment, null, "Place Order & Generate Invoice ", /*#__PURE__*/React.createElement(ShieldCheck, { size: 18 }))
+    (loading || isSubmitting) ? 'Processing Order...' : /*#__PURE__*/React.createElement(React.Fragment, null, "Place Order & Generate Invoice ", /*#__PURE__*/React.createElement(ShieldCheck, { size: 18 }))
     )
     )
     )

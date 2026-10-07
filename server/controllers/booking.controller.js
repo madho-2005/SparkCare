@@ -6,6 +6,7 @@ import { Coupon } from '../models/Coupon.js';
 import { AppError } from '../utils/appError.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { notificationService } from '../services/notificationService.js';
 import { logger } from '../utils/logger.js';
 import mongoose from 'mongoose';
 
@@ -134,6 +135,11 @@ export const createBooking = asyncHandler(async (req, res, next) => {
     .populate('customer', 'name email phoneNumber')
     .populate('service', 'title images category basePrice');
 
+  // Dispatch non-blocking confirmation notification
+  notificationService.sendBookingConfirmation(booking._id, req.user).catch((err) =>
+    logger.error(`[Email] Failed to dispatch booking confirmation email for #${booking._id}: ${err.message}`)
+  );
+
   ApiResponse.send(res, 201, populated, 'Booking request registered successfully.');
 });
 
@@ -179,6 +185,7 @@ export const updateBookingStatus = asyncHandler(async (req, res, next) => {
     return next(new AppError('Booking not found.', 404));
   }
 
+  const previousStatus = booking.bookingStatus;
   booking.bookingStatus = status;
   if (status === 'completed') {
     booking.completedAt = new Date();
@@ -192,6 +199,13 @@ export const updateBookingStatus = asyncHandler(async (req, res, next) => {
   }
 
   await booking.save();
+
+  // Send status change notification only when status genuinely changed
+  if (previousStatus !== status) {
+    notificationService.sendBookingStatusUpdate(booking._id, status, previousStatus).catch((err) =>
+      logger.error(`[Email] Failed to dispatch booking status update email for #${booking._id}: ${err.message}`)
+    );
+  }
 
   const populated = await Booking.findById(booking._id)
     .populate('customer', 'name email phoneNumber')
@@ -223,6 +237,7 @@ export const cancelBooking = asyncHandler(async (req, res, next) => {
     return next(new AppError(`Cannot cancel booking once status is "${booking.bookingStatus}". Please contact support.`, 400));
   }
 
+  const previousStatus = booking.bookingStatus;
   booking.bookingStatus = 'cancelled';
   await booking.save();
 
@@ -231,6 +246,13 @@ export const cancelBooking = asyncHandler(async (req, res, next) => {
     { referenceId: booking._id, paymentType: 'booking' },
     { status: 'failed' }
   );
+
+  // Send status change notification
+  if (previousStatus !== 'cancelled') {
+    notificationService.sendBookingStatusUpdate(booking._id, 'cancelled', previousStatus).catch((err) =>
+      logger.error(`[Email] Failed to dispatch booking cancellation email for #${booking._id}: ${err.message}`)
+    );
+  }
 
   const populated = await Booking.findById(booking._id)
     .populate('customer', 'name email phoneNumber')

@@ -7,6 +7,7 @@ import { AppError } from '../utils/appError.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { uploadToCloudinary } from '../services/cloudinary.service.js';
 import { emailService } from '../services/email.service.js';
+import { notificationService } from '../services/notificationService.js';
 import { logger } from '../utils/logger.js';
 import mongoose from 'mongoose';
 
@@ -45,6 +46,7 @@ export const createOrder = asyncHandler(async (req, res, next) => {
   let createdOrder;
   let createdPayment;
   const lowStockProductsToAlert = [];
+  const outOfStockProductsToAlert = [];
 
   // Core execution function that can run within a transaction session or as standalone atomic steps
   const processCheckout = async (activeSession = null) => {
@@ -97,9 +99,13 @@ export const createOrder = asyncHandler(async (req, res, next) => {
 
         decrementedItems.push({ product: item.product, quantity: qty });
 
-        // Check for low stock alert threshold (stock < 5)
-        if (updatedProduct.stockCount < 5) {
-          lowStockProductsToAlert.push(updatedProduct);
+        // Check for out-of-stock (reaches 0) and low-stock crossing (prev > 5 and new <= 5)
+        const prevStock = dbProduct.stockCount;
+        const newStock = updatedProduct.stockCount;
+        if (newStock === 0 && prevStock > 0) {
+          outOfStockProductsToAlert.push(updatedProduct);
+        } else if (newStock <= 5 && prevStock > 5) {
+          lowStockProductsToAlert.push({ product: updatedProduct, prevStock, newStock });
         }
 
         // Assemble order item using AUTHORITATIVE database prices & details (never trust client prices)
@@ -247,14 +253,20 @@ export const createOrder = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // 8. Post-transaction async operations (emails, low-stock alerts)
-  for (const product of lowStockProductsToAlert) {
-    emailService.sendLowStockAlert(product).catch((err) =>
-      logger.error(`[Alert] Failed to dispatch low-stock alert for ${product.name}: ${err.message}`)
+  // 8. Post-transaction async operations (emails, low-stock alerts, out-of-stock alerts)
+  for (const product of outOfStockProductsToAlert) {
+    notificationService.sendOutOfStockAlert(product).catch((err) =>
+      logger.error(`[Alert] Failed to dispatch out-of-stock alert for ${product.name}: ${err.message}`)
     );
   }
 
-  emailService.sendOrderConfirmation(createdOrder, req.user).catch((err) =>
+  for (const item of lowStockProductsToAlert) {
+    notificationService.sendLowStockAlert(item.product, item.prevStock, item.newStock).catch((err) =>
+      logger.error(`[Alert] Failed to dispatch low-stock alert for ${item.product.name}: ${err.message}`)
+    );
+  }
+
+  notificationService.sendOrderConfirmation(createdOrder, req.user).catch((err) =>
     logger.error(`[Email] Failed to dispatch order confirmation for #${createdOrder._id}: ${err.message}`)
   );
 
@@ -483,6 +495,11 @@ export const cancelOrder = asyncHandler(async (req, res, next) => {
   await Payment.findOneAndUpdate(
     { referenceId: updatedOrder._id, paymentType: 'order' },
     { status: 'failed' }
+  );
+
+  // Dispatch non-blocking status change notification
+  notificationService.sendOrderStatusUpdate(updatedOrder._id, 'cancelled', 'placed').catch((err) =>
+    logger.error(`[Email] Failed to dispatch order cancellation email for #${updatedOrder._id}: ${err.message}`)
   );
 
   res.status(200).json(

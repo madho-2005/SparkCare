@@ -83,7 +83,7 @@ export const ContactSection = () => {
       id: "email",
       name: "email",
       required: true,
-      placeholder: "name@email.com",
+      placeholder: "Enter your email",
       value: formData.email,
       onChange: handleInputChange,
       className: "bg-bg-primary text-text-main border border-border rounded-xl px-4 py-3.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all" }

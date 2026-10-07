@@ -155,7 +155,7 @@ export const ContactUsPage = () => {
                       name="email"
                       type="email"
                       required
-                      placeholder="you@example.com"
+                      placeholder="Enter your email"
                       value={formData.email}
                       onChange={handleChange}
                       className="w-full bg-bg-secondary text-text-main border border-border rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/40"

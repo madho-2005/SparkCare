@@ -77,7 +77,7 @@ export const LoginPage = () => {
       id: "email",
       type: "email",
       icon: /*#__PURE__*/React.createElement(Mail, { size: 18 }),
-      placeholder: "you@example.com",
+      placeholder: "Enter your email",
       value: email,
       onChange: (e) => setEmail(e.target.value),
       error: validationErrors.email }

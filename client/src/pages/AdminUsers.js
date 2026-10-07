@@ -4,9 +4,9 @@ import toast from 'react-hot-toast';
 
 export const AdminUsers = () => {
   const [users, setUsers] = useState([
-  { _id: 'u1', name: 'Alice Smith', email: 'alice@example.com', phoneNumber: '555-0199', role: 'user', isVerified: true },
-  { _id: 'u3', name: 'Admin Master', email: 'admin@sparkcare.com', phoneNumber: '555-0100', role: 'admin', isVerified: true },
-  { _id: 'u4', name: 'Bob Contractor', email: 'bob@example.com', phoneNumber: '555-0177', role: 'user', isVerified: false }]
+  { _id: 'u1', name: 'Alice Smith', email: '', phoneNumber: '555-0199', role: 'user', isVerified: true },
+  { _id: 'u3', name: 'Admin Master', email: '', phoneNumber: '555-0100', role: 'admin', isVerified: true },
+  { _id: 'u4', name: 'Bob Contractor', email: '', phoneNumber: '555-0177', role: 'user', isVerified: false }]
   );
 
   const handleDelete = (id, name) => {
