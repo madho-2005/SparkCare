@@ -90,7 +90,7 @@ export const RegisterPage = () => {
           id="name"
           type="text"
           icon={<User size={18} />}
-          placeholder="John Doe"
+          placeholder="Example"
           value={name}
           onChange={(e) => setName(e.target.value)}
           error={validationErrors.name}
