@@ -102,6 +102,22 @@ export const updateUserRole = createAsyncThunk(
   }
 );
 
+// 7b. Remove / terminate user account
+export const deleteAdminUser = createAsyncThunk(
+  'admin/deleteAdminUser',
+  async (userId, { rejectWithValue }) => {
+    try {
+      await api.delete(`/admin/users/${userId}`);
+      toast.success('User account removed');
+      return userId;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to remove user account';
+      toast.error(msg);
+      return rejectWithValue(msg);
+    }
+  }
+);
+
 // 8. General store orders
 export const fetchAdminOrders = createAsyncThunk(
   'admin/fetchAdminOrders',
@@ -314,6 +330,9 @@ const adminSlice = createSlice({
         if (idx >= 0) {
           state.users[idx] = action.payload;
         }
+      })
+      .addCase(deleteAdminUser.fulfilled, (state, action) => {
+        state.users = state.users.filter((u) => u._id !== action.payload);
       })
 
       // Orders List

@@ -9,6 +9,7 @@ import {
   deleteAdminCoupon,
   getAdminUsers,
   updateUserRole,
+  deleteAdminUser,
   getAdminOrders,
   updateOrderStatus,
   getPendingQrPayments,
@@ -41,6 +42,7 @@ router.delete('/coupons/:id', deleteAdminCoupon);
 // User Directory & Role Mutations
 router.get('/users', getAdminUsers);
 router.put('/users/:id/role', updateUserRole);
+router.delete('/users/:id', deleteAdminUser);
 
 // General Orders Audit & Progress Toggles
 router.get('/orders', getAdminOrders);

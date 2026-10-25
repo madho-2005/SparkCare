@@ -467,6 +467,31 @@ export const updateUserRole = asyncHandler(async (req, res, next) => {
 });
 
 /**
+ * Removes a user account by ID.
+ * Endpoint: DELETE /api/v1/admin/users/:id
+ * Access: Admin Only
+ */
+export const deleteAdminUser = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return next(new AppError('Target user not found', 404));
+  }
+
+  // Prevent deleting administrator accounts
+  if (user.role === 'admin') {
+    return next(new AppError('Cannot delete administrator accounts', 400));
+  }
+
+  // Prevent admin from deleting their own account via this endpoint
+  if (req.user && req.user._id.toString() === user._id.toString()) {
+    return next(new AppError('Administrators cannot delete their own account', 400));
+  }
+
+  await User.findByIdAndDelete(req.params.id);
+  res.status(200).json(new ApiResponse(200, null, 'User account removed successfully'));
+});
+
+/**
  * Lists all platform orders in detail with bounded pagination.
  * Endpoint: GET /api/v1/admin/orders
  * Access: Admin Only
