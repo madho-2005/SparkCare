@@ -3,12 +3,16 @@ import { logger } from '../utils/logger.js';
 import { AppError } from '../utils/appError.js';
 
 // Setup Cloudinary credentials using environment variables
-// Note: Cloudinary expects CLOUDINARY_URL or explicit keys
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+export const configureCloudinary = () => {
+  if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+  }
+};
+configureCloudinary();
 
 /**
  * Cloudinary Media Ingestion Service.
@@ -16,6 +20,8 @@ cloudinary.config({
  */
 export const uploadToCloudinary = (fileBuffer, folderName = 'sparkcare') => {
   return new Promise((resolve, reject) => {
+    configureCloudinary();
+
     // Check if Cloudinary credentials are fully configured or in test mode
     if (process.env.NODE_ENV === 'test' || !process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
       return resolve({
@@ -54,6 +60,7 @@ export const uploadToCloudinary = (fileBuffer, folderName = 'sparkcare') => {
  */
 export const deleteFromCloudinary = async (publicId) => {
   try {
+    configureCloudinary();
     if (!publicId || publicId === 'placeholder') return;
     
     const result = await cloudinary.uploader.destroy(publicId);

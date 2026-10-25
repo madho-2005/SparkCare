@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { emailService } from './emailService.js';
+import { emailService, maskEmail } from './emailService.js';
 import { Order } from '../models/Order.js';
 import { Booking } from '../models/Booking.js';
 import { Product } from '../models/Product.js';
@@ -71,8 +71,21 @@ class NotificationService {
       let order = orderOrId;
       if (!order || typeof order === 'string' || order instanceof mongoose.Types.ObjectId) {
         order = await Order.findById(orderOrId).populate('customer').populate('items.product');
-      } else if (!order.customer || typeof order.customer === 'string' || order.customer instanceof mongoose.Types.ObjectId) {
-        order = await Order.findById(order._id).populate('customer').populate('items.product');
+      } else if (order?._id) {
+        // If customer or product references are unpopulated, attempt populating from DB
+        const isUnpopulatedCustomer = !order.customer || typeof order.customer === 'string' || order.customer instanceof mongoose.Types.ObjectId;
+        const isUnpopulatedItems = Array.isArray(order.items) && order.items.length > 0 && (!order.items[0].product || typeof order.items[0].product === 'string' || order.items[0].product instanceof mongoose.Types.ObjectId);
+        
+        if (isUnpopulatedCustomer || isUnpopulatedItems) {
+          try {
+            const populated = await Order.findById(order._id).populate('customer').populate('items.product');
+            if (populated) {
+              order = populated;
+            }
+          } catch (populateErr) {
+            logger.warn(`[Notification] Order populate non-fatal fallback: ${populateErr.message}`);
+          }
+        }
       }
 
       if (!order) {
@@ -80,19 +93,48 @@ class NotificationService {
         return { success: false, reason: 'Order not found' };
       }
 
-      const user = userOptional || order.customer;
+      // Resolve recipient user with multi-stage fallback
+      let user = userOptional;
+      if (!user || !user.email) {
+        user = order.customer && typeof order.customer === 'object' && order.customer.email ? order.customer : null;
+      }
+
+      // If user is still not resolved, query user by customer ID
+      if (!user || !user.email) {
+        const customerId = order.customer?._id || order.customer;
+        if (customerId && (typeof customerId === 'string' || customerId instanceof mongoose.Types.ObjectId)) {
+          try {
+            user = await User.findById(customerId).select('name email');
+          } catch (uErr) {
+            logger.warn(`[Notification] User query fallback failed: ${uErr.message}`);
+          }
+        }
+      }
+
       if (!user || !user.email) {
         logger.warn(`[Notification] Order #${order._id} customer has no valid email. Notification skipped.`);
         return { success: false, reason: 'Customer email missing' };
       }
 
+      logger.info(
+        `[Notification] Preparing order confirmation for order #${order._id} to recipient: ${maskEmail(user.email)}`
+      );
+
       const template = buildOrderConfirmationTemplate(order, user);
-      return await emailService.sendEmail({
+      const result = await emailService.sendEmail({
         to: user.email,
         subject: template.subject,
         html: template.html,
         text: template.text,
       });
+
+      if (result.success) {
+        logger.info(`[Notification] Order confirmation successfully dispatched for order #${order._id}`);
+      } else {
+        logger.error(`[Notification] Order confirmation dispatch failed for order #${order._id}: ${result.error}`);
+      }
+
+      return result;
     } catch (err) {
       logger.error(`[Notification] Failed to send order confirmation: ${err.message}`);
       return { success: false, error: err.message };

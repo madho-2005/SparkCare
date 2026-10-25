@@ -873,3 +873,48 @@ export const verifyPaymentProof = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Diagnostic check to verify SMTP connectivity from the Admin dashboard.
+ * Endpoint: GET /api/v1/admin/email/verify-smtp
+ * Access: Admin Only
+ */
+export const verifySmtpConnection = asyncHandler(async (req, res) => {
+  const status = await emailService.verifyConnection();
+  return res.status(200).json(
+    new ApiResponse(200, status, status.verified ? 'SMTP connection verified successfully.' : 'SMTP verification failed.')
+  );
+});
+
+/**
+ * Diagnostic endpoint to dispatch a test email to the authenticated admin.
+ * Endpoint: POST /api/v1/admin/email/test-email
+ * Access: Admin Only
+ */
+export const sendAdminTestEmail = asyncHandler(async (req, res, next) => {
+  if (!req.user || !req.user.email) {
+    return next(new AppError('Authenticated administrator must have a valid email address.', 400));
+  }
+
+  const result = await emailService.sendEmail({
+    to: req.user.email,
+    subject: 'SparkCare — SMTP Diagnostic Test Email',
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
+        <h2 style="color: #0f172a;">SparkCare SMTP Diagnostic</h2>
+        <p>This is a live test email confirming that Nodemailer and your SMTP provider are operating correctly.</p>
+        <p><strong>Recipient:</strong> ${req.user.email}</p>
+        <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+      </div>
+    `,
+    text: `SparkCare SMTP Diagnostic: Nodemailer is operating correctly. Recipient: ${req.user.email} at ${new Date().toISOString()}`,
+  });
+
+  if (!result.success) {
+    return next(new AppError(`SMTP test email dispatch failed: ${result.error}`, 500));
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, { messageId: result.messageId, recipient: req.user.email }, 'Diagnostic test email successfully sent.')
+  );
+});
+

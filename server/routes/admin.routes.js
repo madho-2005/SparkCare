@@ -15,7 +15,9 @@ import {
   getOrdersPaymentPending,
   verifyOrderPayment,
   rejectOrderPayment,
-  verifyPaymentProof
+  verifyPaymentProof,
+  verifySmtpConnection,
+  sendAdminTestEmail
 } from '../controllers/admin.controller.js';
 import { protect, restrictTo } from '../middleware/auth.middleware.js';
 import { adminStatsRateLimiter } from '../middleware/rateLimiter.middleware.js';
@@ -52,6 +54,10 @@ router.put('/orders/:orderId/payment/verify', verifyOrderPayment);
 router.patch('/orders/:orderId/payment/reject', rejectOrderPayment);
 router.put('/orders/:orderId/payment/reject', rejectOrderPayment);
 router.put('/payments/verify/:paymentId', verifyPaymentProof);
+
+// Email & SMTP Diagnostics
+router.get('/email/verify-smtp', verifySmtpConnection);
+router.post('/email/test-email', sendAdminTestEmail);
 
 export default router;
 

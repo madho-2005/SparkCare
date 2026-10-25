@@ -31,6 +31,16 @@ class EmailService {
   }
 
   /**
+   * Ensures the SMTP transporter is configured if environment variables become available.
+   */
+  ensureTransporter() {
+    if (!this.isSmtpConfigured || !this.transporter) {
+      this.initTransporter();
+    }
+    return this.isSmtpConfigured;
+  }
+
+  /**
    * Initializes a single, reusable Nodemailer SMTP transporter.
    * Reads credentials strictly from backend environment variables.
    */
@@ -77,6 +87,8 @@ class EmailService {
    * Verifies the SMTP transporter connection without exposing secrets.
    */
   async verifyConnection() {
+    this.ensureTransporter();
+
     if (!this.isSmtpConfigured || !this.transporter) {
       return {
         configured: false,
@@ -121,6 +133,9 @@ class EmailService {
    * Returns a safe status object and never throws uncaught exceptions.
    */
   async sendEmail({ to, subject, html, text }) {
+    // 0. Ensure transporter configured if credentials loaded after instantiation
+    this.ensureTransporter();
+
     // 1. Validation
     if (!to || !isValidEmail(to)) {
       logger.warn(`[Email Service] Rejected send attempt: invalid or missing recipient (${maskEmail(to)})`);

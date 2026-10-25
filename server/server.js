@@ -1,10 +1,10 @@
+import 'dotenv/config';
 import dns from 'dns';
 try {
   dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
 } catch (e) {}
 
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -30,8 +30,7 @@ import { AppError } from './utils/appError.js';
 import { validateEnv } from './utils/validateEnv.js';
 import { emailService } from './services/emailService.js';
 
-// Load and validate environment configuration
-dotenv.config();
+// Validate environment configuration
 validateEnv();
 
 // Initialize Database connection pool
