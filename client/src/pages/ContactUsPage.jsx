@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Clock, Send, CheckCircle2, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Mail, Phone, Clock, Send, CheckCircle2, ArrowLeft, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSettings } from '../utils/useSettings';
 
 export const ContactUsPage = () => {
+  const settings = useSettings();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -64,17 +66,29 @@ export const ContactUsPage = () => {
         <div className="space-y-6">
           <div className="glass-card bg-bg-primary p-6 rounded-3xl border border-border space-y-4 shadow-sm">
             <h3 className="text-sm font-black text-text-main uppercase tracking-wider flex items-center gap-2">
-              <Mail size={16} className="text-primary" /> Support Channel
+              <Mail size={16} className="text-primary" /> Support Channels
             </h3>
             <div className="space-y-1 text-xs text-text-muted font-semibold">
               <p className="font-bold text-text-main">Official Helpdesk Email:</p>
               <a
-                href="mailto:support@sparkcare.com"
+                href={`mailto:${settings.supportEmail || 'urvishthummar6@gmail.com'}`}
                 className="text-primary hover:underline font-bold text-sm block"
               >
-                support@sparkcare.com
+                {settings.supportEmail || 'urvishthummar6@gmail.com'}
               </a>
               <p className="text-xxs text-text-muted mt-1">Monitored during operational hours.</p>
+            </div>
+            <div className="pt-3 border-t border-border space-y-1 text-xs text-text-muted font-semibold">
+              <p className="font-bold text-text-main flex items-center gap-1.5">
+                <Phone size={13} className="text-primary" /> Support Hotline:
+              </p>
+              <a
+                href={`tel:${(settings.supportPhone || '+91 7984025080').replace(/\s+/g, '')}`}
+                className="text-primary hover:underline font-bold text-sm block"
+              >
+                {settings.supportPhone || '+91 7984025080'}
+              </a>
+              <p className="text-xxs text-text-muted mt-1">Available 24/7 for emergency electrical issues.</p>
             </div>
           </div>
 

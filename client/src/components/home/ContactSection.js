@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Clock, MapPin, Send, ShieldCheck, AlertOctagon } from 'lucide-react';
+import { Mail, Clock, MapPin, Send, ShieldCheck, AlertOctagon, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSettings } from '../../utils/useSettings';
 
 export const ContactSection = () => {
+  const settings = useSettings();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -159,7 +161,10 @@ export const ContactSection = () => {
     ), /*#__PURE__*/
     React.createElement("div", null, /*#__PURE__*/
     React.createElement("h4", { className: "text-xs font-black uppercase tracking-wider" }, "24/7 Emergency Phone Line"), /*#__PURE__*/
-    React.createElement("p", { className: "text-lg font-black text-text-main mt-0.5" }, "+1 (800) 555-SPARK"), /*#__PURE__*/
+    React.createElement("a", {
+      href: `tel:${(settings.supportPhone || '+91 7984025080').replace(/\s+/g, '')}`,
+      className: "text-lg font-black text-text-main hover:text-amber-500 transition-colors mt-0.5 block"
+    }, settings.supportPhone || "+91 7984025080"), /*#__PURE__*/
     React.createElement("p", { className: "text-[9px] text-text-muted font-bold mt-0.5" }, "Average call back: under 15 minutes")
     )
     ), /*#__PURE__*/
@@ -175,7 +180,10 @@ export const ContactSection = () => {
     ), /*#__PURE__*/
     React.createElement("div", null, /*#__PURE__*/
     React.createElement("p", { className: "text-[9px] uppercase font-black text-text-muted tracking-wider" }, "Email Us"), /*#__PURE__*/
-    React.createElement("p", { className: "text-xs font-bold text-text-main mt-0.5" }, "support@sparkcare.com")
+    React.createElement("a", {
+      href: `mailto:${settings.supportEmail || 'urvishthummar6@gmail.com'}`,
+      className: "text-xs font-bold text-text-main hover:text-amber-500 transition-colors mt-0.5 block"
+    }, settings.supportEmail || "urvishthummar6@gmail.com")
     )
     ), /*#__PURE__*/
 

@@ -14,6 +14,7 @@ import {
 import { placeOrder, uploadQrProof, resetOrderState } from '../redux/orderSlice';
 import toast from 'react-hot-toast';
 import { formatINR } from '../utils/currency';
+import { useSettings } from '../utils/useSettings';
 
 export const CheckoutPage = () => {
   const dispatch = useDispatch();
@@ -39,35 +40,7 @@ export const CheckoutPage = () => {
   const [copied, setCopied] = useState(false);
 
   // Operational Settings sync states
-  const [settings, setSettings] = useState({
-    taxRate: 8,
-    freeShippingThreshold: 100,
-    shippingFee: 10,
-    upiId: 'sparkcare@upi'
-  });
-
-  useEffect(() => {
-    const syncSettings = () => {
-      const saved = localStorage.getItem('sparkcare_settings');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setSettings({
-            taxRate: typeof parsed.taxRate === 'number' ? parsed.taxRate : 8,
-            freeShippingThreshold: typeof parsed.freeShippingThreshold === 'number' ? parsed.freeShippingThreshold : 100,
-            shippingFee: typeof parsed.shippingFee === 'number' ? parsed.shippingFee : 10,
-            upiId: parsed.upiId || 'sparkcare@upi'
-          });
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    };
-
-    syncSettings();
-    window.addEventListener('sparkcare-settings-sync', syncSettings);
-    return () => window.removeEventListener('sparkcare-settings-sync', syncSettings);
-  }, []);
+  const settings = useSettings();
 
   // Subtotal calculations
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -576,7 +549,7 @@ export const CheckoutPage = () => {
     React.createElement("div", { className: "space-y-1" }, /*#__PURE__*/
     React.createElement("h3", { className: "text-3xl font-extrabold tracking-tight text-blue-600 print:text-black font-heading" }, "SparkCare"), /*#__PURE__*/
     React.createElement("p", { className: "text-xs text-slate-400 font-bold" }, "Premium Home Solutions & Supplies"), /*#__PURE__*/
-    React.createElement("p", { className: "text-[10px] text-slate-400" }, "24/7 Corporate Line: +1 (800) 555-CARE")
+    React.createElement("p", { className: "text-[10px] text-slate-400" }, "24/7 Corporate Line: " + (settings.supportPhone || "+91 7984025080"))
     ), /*#__PURE__*/
     React.createElement("div", { className: "text-right space-y-1.5" }, /*#__PURE__*/
     React.createElement("span", { className: "inline-block text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 px-3 py-1 rounded print:border print:border-black print:text-black" }, "Official Corporate Receipt"

@@ -12,6 +12,7 @@ import {
   Plus,
   Search,
   Filter,
+  ArrowUpDown,
   Edit,
   Trash2,
   CheckCircle2,
@@ -456,11 +457,13 @@ export const AdminProducts = () => {
                 setSelectedCategory(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-transparent focus:outline-none text-text-main cursor-pointer"
+              className="bg-transparent focus:outline-none text-text-main cursor-pointer [&>option]:bg-[#0b1120] [&>option]:text-slate-100"
             >
-              <option value="All">All Categories</option>
+              <option value="All" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                All Categories
+              </option>
               {CATEGORY_OPTIONS.map((c) => (
-                <option key={c} value={c}>
+                <option key={c} value={c} className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
                   {c}
                 </option>
               ))}
@@ -476,32 +479,55 @@ export const AdminProducts = () => {
                 setSelectedStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-transparent focus:outline-none text-text-main cursor-pointer"
+              className="bg-transparent focus:outline-none text-text-main cursor-pointer [&>option]:bg-[#0b1120] [&>option]:text-slate-100"
             >
-              <option value="All">All Statuses</option>
-              <option value="active">Active (Published)</option>
-              <option value="draft">Draft</option>
-              <option value="inactive">Inactive</option>
-              <option value="out_of_stock">Out of Stock</option>
+              <option value="All" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                All Statuses
+              </option>
+              <option value="active" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                Active (Published)
+              </option>
+              <option value="draft" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                Draft
+              </option>
+              <option value="inactive" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                Inactive
+              </option>
+              <option value="out_of_stock" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                Out of Stock
+              </option>
             </select>
           </div>
 
           {/* Sort Selection */}
           <div className="flex items-center gap-2 bg-bg-secondary border border-border px-3 py-2 rounded-xl text-xs font-semibold">
+            <ArrowUpDown size={12} className="text-text-muted" />
             <select
               value={selectedSort}
               onChange={(e) => {
                 setSelectedSort(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-transparent focus:outline-none text-text-main cursor-pointer"
+              className="bg-transparent focus:outline-none text-text-main cursor-pointer [&>option]:bg-[#0b1120] [&>option]:text-slate-100"
             >
-              <option value="newest">Sort: Newest</option>
-              <option value="oldest">Sort: Oldest</option>
-              <option value="price_high">Price: High to Low</option>
-              <option value="price_low">Price: Low to High</option>
-              <option value="stock_low">Stock: Low to High</option>
-              <option value="stock_high">Stock: High to Low</option>
+              <option value="newest" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                Sort: Newest
+              </option>
+              <option value="oldest" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                Sort: Oldest
+              </option>
+              <option value="price_high" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                Price: High to Low
+              </option>
+              <option value="price_low" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                Price: Low to High
+              </option>
+              <option value="stock_low" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                Stock: Low to High
+              </option>
+              <option value="stock_high" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                Stock: High to Low
+              </option>
             </select>
           </div>
         </div>
@@ -796,10 +822,10 @@ export const AdminProducts = () => {
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full bg-bg-secondary border border-border rounded-xl p-3 text-xs font-bold text-text-main focus:ring-2 focus:ring-primary/30 focus:outline-none cursor-pointer"
+                      className="w-full bg-bg-secondary border border-border rounded-xl p-3 text-xs font-bold text-text-main focus:ring-2 focus:ring-primary/30 focus:outline-none cursor-pointer [&>option]:bg-[#0b1120] [&>option]:text-slate-100"
                     >
                       {CATEGORY_OPTIONS.map((c) => (
-                        <option key={c} value={c}>
+                        <option key={c} value={c} className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
                           {c}
                         </option>
                       ))}
@@ -1039,11 +1065,17 @@ export const AdminProducts = () => {
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full bg-bg-secondary border border-border rounded-xl p-3 text-xs font-bold text-text-main focus:ring-2 focus:ring-primary/30 focus:outline-none cursor-pointer"
+                      className="w-full bg-bg-secondary border border-border rounded-xl p-3 text-xs font-bold text-text-main focus:ring-2 focus:ring-primary/30 focus:outline-none cursor-pointer [&>option]:bg-[#0b1120] [&>option]:text-slate-100"
                     >
-                      <option value="active">Active (Visible & Purchasable in E-Store)</option>
-                      <option value="draft">Draft (Private in Admin Panel only)</option>
-                      <option value="inactive">Inactive (Hidden from Customers)</option>
+                      <option value="active" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                        Active (Visible & Purchasable in E-Store)
+                      </option>
+                      <option value="draft" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                        Draft (Private in Admin Panel only)
+                      </option>
+                      <option value="inactive" className="bg-[#0b1120] text-slate-100 dark:bg-[#0b1120] dark:text-slate-100">
+                        Inactive (Hidden from Customers)
+                      </option>
                     </select>
                   </div>
 

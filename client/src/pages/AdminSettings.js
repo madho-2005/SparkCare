@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings,
   Save,
@@ -11,6 +11,8 @@ import {
   ShieldCheck } from
 'lucide-react';
 import toast from 'react-hot-toast';
+import { api } from '../services/api';
+import { DEFAULT_SETTINGS } from '../utils/useSettings';
 
 export const AdminSettings = () => {
   // Helper to safely load a setting from localStorage at mount time
@@ -27,16 +29,48 @@ export const AdminSettings = () => {
     return defaultValue;
   };
 
-  // Config states initialized with industry defaults or saved preferences
-  const [taxRate, setTaxRate] = useState(() => getSavedSetting('taxRate', '8'));
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState(() => getSavedSetting('freeShippingThreshold', '100'));
-  const [shippingFee, setShippingFee] = useState(() => getSavedSetting('shippingFee', '10'));
-  const [supportPhone, setSupportPhone] = useState(() => getSavedSetting('supportPhone', '+1 (800) 555-CARE'));
-  const [supportEmail, setSupportEmail] = useState(() => getSavedSetting('supportEmail', 'support@sparkcare.com'));
-  const [upiId, setUpiId] = useState(() => getSavedSetting('upiId', 'sparkcare@upi'));
+  // Config states initialized with saved preferences or defaults
+  const [taxRate, setTaxRate] = useState(() => getSavedSetting('taxRate', DEFAULT_SETTINGS.taxRate.toString()));
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState(() => getSavedSetting('freeShippingThreshold', DEFAULT_SETTINGS.freeShippingThreshold.toString()));
+  const [shippingFee, setShippingFee] = useState(() => getSavedSetting('shippingFee', DEFAULT_SETTINGS.shippingFee.toString()));
+  const [supportPhone, setSupportPhone] = useState(() => getSavedSetting('supportPhone', DEFAULT_SETTINGS.supportPhone));
+  const [supportEmail, setSupportEmail] = useState(() => getSavedSetting('supportEmail', DEFAULT_SETTINGS.supportEmail));
+  const [upiId, setUpiId] = useState(() => getSavedSetting('upiId', DEFAULT_SETTINGS.upiId));
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Sync with remote settings database on mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await api.get('/settings');
+        if (response.data?.data) {
+          const remote = response.data.data;
+          if (remote.taxRate !== undefined) setTaxRate(remote.taxRate.toString());
+          if (remote.freeShippingThreshold !== undefined) setFreeShippingThreshold(remote.freeShippingThreshold.toString());
+          if (remote.shippingFee !== undefined) setShippingFee(remote.shippingFee.toString());
+          if (remote.supportPhone) setSupportPhone(remote.supportPhone);
+          if (remote.supportEmail) setSupportEmail(remote.supportEmail);
+          if (remote.upiId) setUpiId(remote.upiId);
+
+          localStorage.setItem('sparkcare_settings', JSON.stringify({
+            taxRate: Number(remote.taxRate),
+            freeShippingThreshold: Number(remote.freeShippingThreshold),
+            shippingFee: Number(remote.shippingFee),
+            supportPhone: remote.supportPhone,
+            supportEmail: remote.supportEmail,
+            upiId: remote.upiId
+          }));
+          window.dispatchEvent(new Event('sparkcare-settings-sync'));
+        }
+      } catch (err) {
+        console.warn('Using cached settings:', err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   // Saves system constants to local cache and emits event
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
 
     if (Number(taxRate) < 0 || Number(freeShippingThreshold) < 0 || Number(shippingFee) < 0) {
@@ -53,23 +87,50 @@ export const AdminSettings = () => {
       upiId: upiId.trim()
     };
 
-    localStorage.setItem('sparkcare_settings', JSON.stringify(settings));
-    // Emit sync event for dynamic components to update in real-time
-    window.dispatchEvent(new Event('sparkcare-settings-sync'));
-    toast.success('Platform system settings updated successfully!');
+    setIsSaving(true);
+    try {
+      localStorage.setItem('sparkcare_settings', JSON.stringify(settings));
+      // Emit sync event for dynamic components to update in real-time
+      window.dispatchEvent(new Event('sparkcare-settings-sync'));
+
+      await api.put('/settings', settings);
+      toast.success('Platform system settings updated successfully!');
+    } catch (err) {
+      console.error(err);
+      toast.success('Platform system settings updated locally!');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Restores defaults
-  const handleReset = () => {
+  const handleReset = async () => {
     if (window.confirm('Are you sure you want to revert all system variables to factory defaults?')) {
-      setTaxRate('8');
-      setFreeShippingThreshold('100');
-      setShippingFee('10');
-      setSupportPhone('+1 (800) 555-CARE');
-      setSupportEmail('support@sparkcare.com');
-      setUpiId('sparkcare@upi');
-      localStorage.removeItem('sparkcare_settings');
+      const defaults = {
+        taxRate: DEFAULT_SETTINGS.taxRate,
+        freeShippingThreshold: DEFAULT_SETTINGS.freeShippingThreshold,
+        shippingFee: DEFAULT_SETTINGS.shippingFee,
+        supportPhone: DEFAULT_SETTINGS.supportPhone,
+        supportEmail: DEFAULT_SETTINGS.supportEmail,
+        upiId: DEFAULT_SETTINGS.upiId
+      };
+
+      setTaxRate(defaults.taxRate.toString());
+      setFreeShippingThreshold(defaults.freeShippingThreshold.toString());
+      setShippingFee(defaults.shippingFee.toString());
+      setSupportPhone(defaults.supportPhone);
+      setSupportEmail(defaults.supportEmail);
+      setUpiId(defaults.upiId);
+
+      localStorage.setItem('sparkcare_settings', JSON.stringify(defaults));
       window.dispatchEvent(new Event('sparkcare-settings-sync'));
+
+      try {
+        await api.put('/settings', defaults);
+      } catch (e) {
+        console.warn('Reset remote sync failed:', e);
+      }
+
       toast.success('System settings restored to platform defaults');
     }
   };

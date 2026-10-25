@@ -8,6 +8,7 @@ import adminRoutes from './admin.routes.js';
 import couponRoutes from './coupon.routes.js';
 import serviceRoutes from './service.routes.js';
 import bookingRoutes from './booking.routes.js';
+import settingRoutes from './setting.routes.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 
 import { checkHealth } from '../controllers/health.controller.js';
@@ -27,6 +28,7 @@ router.use('/admin', adminRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/services', serviceRoutes);
 router.use('/bookings', bookingRoutes);
+router.use('/settings', settingRoutes);
 
 export default router;
 

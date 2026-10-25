@@ -13,6 +13,7 @@ import { api } from '../services/api';
 import toast from 'react-hot-toast';
 import { formatINR } from '../utils/currency';
 import { getProductImage } from '../utils/productImage';
+import { useSettings } from '../utils/useSettings';
 
 export const CartPage = () => {
   const { items, coupon } = useSelector((state) => state.cart);
@@ -23,36 +24,8 @@ export const CartPage = () => {
   const [couponCode, setCouponCode] = useState('');
   const [validating, setValidating] = useState(false);
 
-  // Operational Settings sync states
-  const [settings, setSettings] = useState({
-    taxRate: 8,
-    freeShippingThreshold: 100,
-    shippingFee: 10,
-    upiId: 'sparkcare@upi'
-  });
-
-  useEffect(() => {
-    const syncSettings = () => {
-      const saved = localStorage.getItem('sparkcare_settings');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setSettings({
-            taxRate: typeof parsed.taxRate === 'number' ? parsed.taxRate : 8,
-            freeShippingThreshold: typeof parsed.freeShippingThreshold === 'number' ? parsed.freeShippingThreshold : 100,
-            shippingFee: typeof parsed.shippingFee === 'number' ? parsed.shippingFee : 10,
-            upiId: parsed.upiId || 'sparkcare@upi'
-          });
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    };
-
-    syncSettings();
-    window.addEventListener('sparkcare-settings-sync', syncSettings);
-    return () => window.removeEventListener('sparkcare-settings-sync', syncSettings);
-  }, []);
+  // Operational Settings sync hook
+  const settings = useSettings();
 
   // Unauthenticated Guest View: Strict Security Isolation
   if (!isAuthenticated) {
